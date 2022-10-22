@@ -1,4 +1,3 @@
-import timm.models
 import torch.nn
 import timm
 

@@ -32,5 +32,5 @@ if __name__ == '__main__':
             cv2.circle(image, (landmarks[i][0], landmarks[i][1]), 5, (0, 0, 0), 5)
 
         cv2.imshow('image', image)
-        cv2.waitKey(0)
+        cv2.waitKey()
 

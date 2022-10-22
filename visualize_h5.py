@@ -1,15 +1,13 @@
 import argparse
-import io
 import json
 import cv2
 import h5py
 import numpy
-import dataset
-
+from lib import dataset
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--h5_path', type=str, default='data/train_jpg.h5')
+    parser.add_argument('--h5_path', type=str, default='data/train.h5')
     args = parser.parse_args()
 
     with h5py.File(args.h5_path, 'r') as h5f:
