@@ -21,7 +21,6 @@ if __name__ == '__main__':
         for jpg_i, jpg_filename in tqdm.tqdm(enumerate(os.listdir(args.jpgs_dir))):
             image = cv2.imread(os.path.join(args.jpgs_dir, jpg_filename))
             x, y, w, h = annotations['data'][jpg_i]['bbox']
-            landmarks = numpy.array(annotations['data'][jpg_i]['landmarks'], dtype=int)
 
             image = image[y:y+h, x:x+w]
             if w > h:
