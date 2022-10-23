@@ -25,9 +25,10 @@ if __name__ == '__main__':
     parser.add_argument('--n_epochs', type=int, default=40)
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18')
+    parser.add_argument('--pretrained_model', type=str, default='hrnet_w18')
     args = parser.parse_args()
 
-    model = timm.create_model('hrnet_w18', pretrained=True, features_only=True)
+    model = timm.create_model(args.pretrained_model, pretrained=True, features_only=True)
     model = lib.pose_model.PoseModel(model).to('cuda')
     optim = torch.optim.Adam(model.parameters(), lr=1e-3)
 
