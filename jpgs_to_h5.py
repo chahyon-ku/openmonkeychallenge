@@ -9,9 +9,10 @@ import tqdm
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--jpgs_dir', type=str, default='data/test')
-    parser.add_argument('--json_path', type=str, default='data/test_prediction.json')
-    parser.add_argument('--h5_path', type=str, default='data/test.h5')
+    parser.add_argument('--jpgs_dir', type=str, default='data/val')
+    parser.add_argument('--json_path', type=str, default='data/val_annotation.json')
+    parser.add_argument('--h5_path', type=str, default='data/val_384.h5')
+    parser.add_argument('--size', type=int, default=384)
     args = parser.parse_args()
 
     with open(args.json_path, 'r') as f:
@@ -27,7 +28,7 @@ if __name__ == '__main__':
                 image = cv2.copyMakeBorder(image, (w - h) // 2, (w - h) // 2, 0, 0, cv2.BORDER_CONSTANT)
             else:
                 image = cv2.copyMakeBorder(image, 0, 0, (h - w) // 2, (h - w) // 2, cv2.BORDER_CONSTANT)
-            image = cv2.resize(image, (256, 256))
+            image = cv2.resize(image, (args.size, args.size))
             image = cv2.imencode('.jpg', image)[1]
 
             jpg_key = '%06d' % (jpg_i)

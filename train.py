@@ -20,8 +20,8 @@ if __name__ == '__main__':
     parser.add_argument('--n_workers', type=int, default=1)
 
     # training
-    parser.add_argument('--f_save', type=int, default=2)
-    parser.add_argument('--f_val', type=int, default=2)
+    parser.add_argument('--f_save', type=int, default=1)
+    parser.add_argument('--f_val', type=int, default=1)
     parser.add_argument('--n_epochs', type=int, default=40)
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18')
@@ -70,11 +70,11 @@ if __name__ == '__main__':
             summary_writer.add_scalar('train_batch_loss', loss.item(), global_step)
             summary_writer.flush()
 
-        if epoch_i % args.f_save == 0:
-            torch.save(model.state_dict(), os.path.join(args.log_dir, f'{epoch_i}.pt'))
+        with torch.no_grad():
+            if epoch_i % args.f_save == 0:
+                torch.save(model.state_dict(), os.path.join(args.log_dir, f'{epoch_i}.pt'))
 
-        if epoch_i % args.f_val == 0:
-            with torch.no_grad():
+            if epoch_i % args.f_val == 0:
                 val_losses = []
                 for batch_i, (image, target) in enumerate(val_dataloader):
                     image = image.to('cuda')
