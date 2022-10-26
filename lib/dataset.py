@@ -52,7 +52,9 @@ class OMCDataset(torch.utils.data.Dataset):
             landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
             bbox_x, bbox_y, bbox_w, bbox_h = data['bbox']
             for i in range(len(landmarks)):
-                landmark_x, landmark_y = jpg_xy_to_image_xy(landmarks[i][0], landmarks[i][1], bbox_x, bbox_y, bbox_w, bbox_h)
+                # landmark_x, landmark_y = jpg_xy_to_image_xy(landmarks[i][0], landmarks[i][1], bbox_x, bbox_y, bbox_w, bbox_h)
+                landmark_x = landmarks[i][0] / bbox_w * image.shape[2]
+                landmark_y = landmarks[i][1] / bbox_h * image.shape[1]
                 landmark_l = max(landmark_x - self.g.shape[0] // 2, 0)
                 landmark_t = max(landmark_y - self.g.shape[0] // 2, 0)
                 landmark_r = min(landmark_x + self.g.shape[0] // 2, image.shape[1])
@@ -63,5 +65,5 @@ class OMCDataset(torch.utils.data.Dataset):
                 g_b = landmark_b - (landmark_y + self.g.shape[0] // 2) + self.g.shape[0] - 1
                 target[i, landmark_t:landmark_b, landmark_l:landmark_r] = self.g[g_t:g_b, g_l:g_r]
 
-        return image, target
+        return image, target, torch.from_numpy(numpy.array(data['bbox']))
 

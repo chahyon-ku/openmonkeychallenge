@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 import torch.nn
 import timm
 
@@ -13,3 +15,19 @@ class PoseModel(torch.nn.Module):
         out = self.get_submodule('hrnet')(image)
         out = self.final(out[0])
         return out
+
+    @staticmethod
+    def get_landmarks(heatmap, bbox):
+        landmarks = torch.argmax(torch.flatten(heatmap, -2), -1)
+        landmarks = torch.stack([landmarks % heatmap.shape[-1], landmarks // heatmap.shape[-1]], -1)
+        landmarks = landmarks.cpu() * 2
+
+        offset = torch.unsqueeze(torch.stack((bbox[:, 0], bbox[:, 1]), -1), 1)
+        scale = torch.unsqueeze(torch.unsqueeze(torch.maximum(bbox[:, 2], bbox[:, 3]) / heatmap.shape[-1] / 2, 1), 1)
+        landmarks = landmarks * scale + offset
+        landmarks[:, :, 0] -= torch.unsqueeze(torch.maximum(bbox[:, 3] - bbox[:, 2], torch.tensor(0)), 1) / 2
+        landmarks[:, :, 1] -= torch.unsqueeze(torch.maximum(bbox[:, 2] - bbox[:, 3], torch.tensor(0)), 1) / 2
+        landmarks = torch.flatten(landmarks, 1)
+
+        return landmarks
+

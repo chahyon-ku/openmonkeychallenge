@@ -13,6 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('--json_path', type=str, default='data/val_annotation.json')
     parser.add_argument('--h5_path', type=str, default='data/val_384.h5')
     parser.add_argument('--size', type=int, default=384)
+    parser.add_argument('--type', type=str, default='stretch', choices=('pad', 'stretch'))
     args = parser.parse_args()
 
     with open(args.json_path, 'r') as f:
@@ -24,10 +25,11 @@ if __name__ == '__main__':
             x, y, w, h = annotations['data'][jpg_i]['bbox']
 
             image = image[y:y+h, x:x+w]
-            if w > h:
-                image = cv2.copyMakeBorder(image, (w - h) // 2, (w - h) // 2, 0, 0, cv2.BORDER_CONSTANT)
-            else:
-                image = cv2.copyMakeBorder(image, 0, 0, (h - w) // 2, (h - w) // 2, cv2.BORDER_CONSTANT)
+            if args.type == 'pad':
+                if w > h:
+                    image = cv2.copyMakeBorder(image, (w - h) // 2, (w - h) // 2, 0, 0, cv2.BORDER_CONSTANT)
+                else:
+                    image = cv2.copyMakeBorder(image, 0, 0, (h - w) // 2, (h - w) // 2, cv2.BORDER_CONSTANT)
             image = cv2.resize(image, (args.size, args.size))
             image = cv2.imencode('.jpg', image)[1]
 
