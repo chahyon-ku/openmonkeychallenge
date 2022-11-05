@@ -8,7 +8,7 @@ import tensorboardX
 import torchvision
 import timm
 import tqdm
-import lib.pose_model
+import lib.hrnet
 import lib.dataset
 import torch.utils.data
 import matplotlib.pyplot as plt
@@ -20,12 +20,12 @@ if __name__ == '__main__':
 
     # testing
     parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--resume_path', type=str, default='logs/agate/hrnet_w32/10.pt')
-    parser.add_argument('--output_path', type=str, default='output/val_preds_w32.json')
+    parser.add_argument('--resume_path', type=str, default='logs/agate2/hrnet_w48/10.pt')
+    parser.add_argument('--output_path', type=str, default='output/hrnet_w48_10_val.json')
     args = parser.parse_args()
 
-    model = timm.create_model('hrnet_w32', pretrained=False, features_only=True)
-    model = lib.pose_model.PoseModel(model).to('cuda')
+    model = timm.create_model('hrnet_w48', pretrained=False, features_only=True)
+    model = lib.hrnetv2.HRNetV2(model).to('cuda')
     model.load_state_dict(torch.load(args.resume_path))
 
     transform = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),

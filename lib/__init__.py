@@ -1,3 +1,3 @@
 import lib.dataset
-import lib.pose_model
-import lib.pose_model_complex
+import lib.hrnet
+import lib.hrnetv2

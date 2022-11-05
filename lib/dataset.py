@@ -45,7 +45,7 @@ class OMCDataset(torch.utils.data.Dataset):
         data = json.loads(self.h5f[key]['data'][()])
 
         if len(data['landmarks']) == 0:
-            target = None
+            target = torch.zeros(0)
         else:
             target = numpy.zeros((17, image.shape[1], image.shape[2]), dtype=numpy.float32)
             landmarks = numpy.array(data['landmarks'], dtype=int)
@@ -53,12 +53,12 @@ class OMCDataset(torch.utils.data.Dataset):
             bbox_x, bbox_y, bbox_w, bbox_h = data['bbox']
             for i in range(len(landmarks)):
                 # landmark_x, landmark_y = jpg_xy_to_image_xy(landmarks[i][0], landmarks[i][1], bbox_x, bbox_y, bbox_w, bbox_h)
-                landmark_x = landmarks[i][0] / bbox_w * image.shape[2]
-                landmark_y = landmarks[i][1] / bbox_h * image.shape[1]
+                landmark_x = (landmarks[i][0] - bbox_x) * image.shape[2] // bbox_w
+                landmark_y = (landmarks[i][1] - bbox_y) * image.shape[1] // bbox_h
                 landmark_l = max(landmark_x - self.g.shape[0] // 2, 0)
                 landmark_t = max(landmark_y - self.g.shape[0] // 2, 0)
-                landmark_r = min(landmark_x + self.g.shape[0] // 2, image.shape[1])
-                landmark_b = min(landmark_y + self.g.shape[0] // 2, image.shape[2])
+                landmark_r = min(landmark_x + self.g.shape[0] // 2, image.shape[2])
+                landmark_b = min(landmark_y + self.g.shape[0] // 2, image.shape[1])
                 g_l = landmark_l - (landmark_x - self.g.shape[0] // 2)
                 g_t = landmark_t - (landmark_y - self.g.shape[0] // 2)
                 g_r = landmark_r - (landmark_x + self.g.shape[0] // 2) + self.g.shape[0] - 1
