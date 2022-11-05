@@ -12,24 +12,33 @@ import lib
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--h5_path', type=str, default='data/val.h5')
+    parser.add_argument('--h5_path', type=str, default='data/v2/val.h5')
     parser.add_argument('--output_dir', type=str, default='output/val_h5/')
-    parser.add_argument('--image_size', type=int, default=256)
+    parser.add_argument('--image_size', type=int, default=224)
+    parser.add_argument('--target_size', type=int, default=112)
     parser.add_argument('--n_images', type=int, default=100)
     args = parser.parse_args()
 
-    dataset = lib.dataset.OMCDataset(args.h5_path, args.image_size, sigma=1)
+    unnormalize = torchvision.transforms.Compose([torchvision.transforms.Normalize(mean=[0., 0., 0.],
+                                                                                   std=[1 / 0.229, 1 / 0.224, 1 / 0.225]),
+                                                  torchvision.transforms.Normalize(mean=[-0.485, -0.456, -0.406],
+                                                                                   std=[1., 1., 1.]),
+                                                  ])
+
+    dataset = lib.dataset.OMCDataset(args.h5_path, args.image_size, args.target_size, sigma=1)
     dataloader = torch.utils.data.DataLoader(dataset, 32)
 
     os.makedirs(args.output_dir, exist_ok=True)
     n_images = 0
     for i_batch, (images, targets, bboxes) in tqdm.tqdm(enumerate(dataloader)):
+        images = unnormalize(images)
         for i_image, image in enumerate(images):
             if n_images == args.n_images:
                 return
 
             landmarks = torch.argmax(torch.flatten(targets[i_image], -2), -1)
-            landmarks = torch.stack([landmarks % image.shape[-1], landmarks // image.shape[-1]], -1)
+            landmarks = torch.stack([landmarks % args.target_size, landmarks // args.target_size], -1)
+            landmarks = landmarks * args.image_size // args.target_size
 
             image = torch.permute(image, (1, 2, 0))
             plt.imshow(image)

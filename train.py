@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # data
     parser.add_argument('--train_h5_path', type=str, default='data/v2/train.h5')
     parser.add_argument('--val_h5_path', type=str, default='data/v2/test.h5')
-    parser.add_argument('--n_workers', type=int, default=1)
+    parser.add_argument('--n_workers', type=int, default=0)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--target_size', type=int, default=112)
 
@@ -25,16 +25,18 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=1e-3)
 
     # model
-    parser.add_argument('--model_name', type=str, default='hrnet_w18',
-                        choices=('hrnet_w18', 'hrnet_w32', 'hrnet_w48', 'hrnet_w64', 'vit_base_patch16_224'))
+    parser.add_argument('--model_name', type=str, default='vit_small_patch16_224_dino',
+                        choices=('hrnet_w18', 'hrnet_w32', 'hrnet_w48', 'hrnet_w64',
+                                 'vit_small_patch8_224_dino', 'vit_base_patch8_224_dino', 'vit_small_patch16_224_dino',
+                                 'vit_base_patch16_224_dino'))
     parser.add_argument('--pretrained', type=bool, default=True)
 
     # train
     parser.add_argument('--f_save', type=int, default=4)
     parser.add_argument('--f_val', type=int, default=1)
-    parser.add_argument('--n_epochs', type=int, default=20)
+    parser.add_argument('--n_epochs', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18')
+    parser.add_argument('--log_dir', type=str, default='logs/vit_s16')
     args = parser.parse_args()
 
     train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size, args.target_size)
@@ -45,7 +47,9 @@ if __name__ == '__main__':
     if args.model_name.startswith('hrnet'):
         model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size).to('cuda')
     elif args.model_name.startswith('vit'):
-        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size).to('cuda')
+        embed_dim = 768 if 'base' in args.model_name else 384
+        patch_size = 8 if 'p8' in args.model_name else 16
+        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size, patch_size, embed_dim).to('cuda')
     optim = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     os.makedirs(args.log_dir, exist_ok=True)
@@ -86,7 +90,7 @@ if __name__ == '__main__':
                     image = image.to('cuda')
                     target = target.to('cuda')
                     prediction = model(image)
-                    loss = torch.nn.functional.mse_loss(prediction, torchvision.transforms.functional.resize(target, prediction.shape[-2:]))
+                    loss = torch.nn.functional.mse_loss(prediction, target)
 
                     val_losses.append(loss.item())
                 val_loss = numpy.mean(numpy.array(val_losses))

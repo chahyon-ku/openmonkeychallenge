@@ -58,16 +58,22 @@ class OMCDataset(torch.utils.data.Dataset):
             landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
 
             for i, (x, y) in enumerate(landmarks):
-                x = (x - box_x) * self.target_size // box_s + pad_x
-                y = (y - box_y) * self.target_size // box_s + pad_y
+                x = (x - box_x) * self.target_size // box_s + pad_x * self.target_size // self.image_size
+                y = (y - box_y) * self.target_size // box_s + pad_y * self.target_size // self.image_size
                 l = max(x - self.g.shape[0] // 2, 0)
                 t = max(y - self.g.shape[0] // 2, 0)
-                r = min(x + self.g.shape[0] // 2, self.target_size)
-                b = min(y + self.g.shape[0] // 2, self.target_size)
-                g_l = l - (x - self.g.shape[0] // 2)
-                g_t = t - (y - self.g.shape[0] // 2)
-                g_r = r - (x + self.g.shape[0] // 2) + self.g.shape[0] - 1
-                g_b = b - (y + self.g.shape[0] // 2) + self.g.shape[0] - 1
+                r = min(x + self.g.shape[0] // 2 + 1, self.target_size)
+                b = min(y + self.g.shape[0] // 2 + 1, self.target_size)
+                w = r - l
+                h = b - t
+                g_l = l - x + self.g.shape[0] // 2
+                g_t = t - y + self.g.shape[0] // 2
+                g_r = g_l + w
+                g_b = g_t + h
+                if target[i, t:b, l:r].shape != self.g[g_t:g_b, g_l:g_r].shape:
+                    print(box_x, box_y, box_w, box_h, pad_x, pad_y)
+                    print(l, t, r, b, g_l, g_t, g_r, g_b)
+                    print(target[i, t:b, l:r].shape, self.g[g_t:g_b, g_l:g_r].shape)
                 target[i, t:b, l:r] = self.g[g_t:g_b, g_l:g_r]
 
         return image, target, metadata
