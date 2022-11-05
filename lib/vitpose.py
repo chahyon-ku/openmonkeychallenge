@@ -2,11 +2,11 @@ import torch.nn
 import timm
 
 
-class HRNet(torch.nn.Module):
+class ViTPose(torch.nn.Module):
     def __init__(self, model_name, pretrained, image_size):
-        super(HRNet, self).__init__()
+        super(ViTPose, self).__init__()
 
-        self.hrnet = timm.create_model(model_name, pretrained=pretrained, features_only=True)
+        self.vit = timm.create_model(model_name, pretrained=pretrained, features_only=True)
         self.pool = torch.nn.AdaptiveAvgPool2d((image_size // 2, image_size // 2))
         self.final = torch.nn.Conv2d(1984, 17, 1, 1, 0)
 

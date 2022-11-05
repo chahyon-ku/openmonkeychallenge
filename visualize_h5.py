@@ -1,26 +1,46 @@
 import argparse
-import json
-import cv2
-import h5py
-import numpy
-from lib import dataset
+import os
 
-if __name__ == '__main__':
+import cv2
+import numpy
+import torch.utils.data
+import torchvision.transforms.functional_tensor
+import tqdm
+import matplotlib.pyplot as plt
+import lib
+
+
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--h5_path', type=str, default='data/train.h5')
+    parser.add_argument('--h5_path', type=str, default='data/val.h5')
+    parser.add_argument('--output_dir', type=str, default='output/val_h5/')
+    parser.add_argument('--image_size', type=int, default=256)
+    parser.add_argument('--n_images', type=int, default=100)
     args = parser.parse_args()
 
-    with h5py.File(args.h5_path, 'r') as h5f:
-        print(h5f.keys())
-        for key in h5f.keys():
-            data = json.loads(h5f[key]['data'][()])
-            image = cv2.imdecode(numpy.array(h5f[key]['image']), cv2.IMREAD_COLOR)
-            bbox_x, bbox_y, bbox_w, bbox_h = data['bbox']
-            print(key, bbox_w, bbox_h, image.shape[1], image.shape[0])
-            landmarks = numpy.array(data['landmarks'], dtype=int)
-            landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
-            for i in range(len(landmarks)):
-                landmark_x, landmark_y = dataset.jpg_xy_to_image_xy(landmarks[i][0], landmarks[i][1], bbox_x, bbox_y, bbox_w, bbox_h)
-                cv2.circle(image, (landmark_x, landmark_y), 5, (0, 0, 0), 5)
-            cv2.imshow('image', image)
-            cv2.waitKey()
+    dataset = lib.dataset.OMCDataset(args.h5_path, args.image_size, sigma=1)
+    dataloader = torch.utils.data.DataLoader(dataset, 32)
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    n_images = 0
+    for i_batch, (images, targets, bboxes) in tqdm.tqdm(enumerate(dataloader)):
+        for i_image, image in enumerate(images):
+            if n_images == args.n_images:
+                return
+
+            landmarks = torch.argmax(torch.flatten(targets[i_image], -2), -1)
+            landmarks = torch.stack([landmarks % image.shape[-1], landmarks // image.shape[-1]], -1)
+
+            image = torch.permute(image, (1, 2, 0))
+            plt.imshow(image)
+            for landmark_i in range(17):
+                plt.gcf().gca().add_patch(plt.Circle((landmarks[landmark_i][0], landmarks[landmark_i][1]), radius=2, color='b'))
+
+            plt.axis('off')
+            plt.savefig(f'{args.output_dir}/{n_images:06d}.png', bbox_inches='tight')
+            plt.close()
+            n_images += 1
+
+
+if __name__ == '__main__':
+    main()

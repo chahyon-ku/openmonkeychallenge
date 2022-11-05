@@ -18,8 +18,7 @@ if __name__ == '__main__':
         annotations = json.load(f)
 
     with h5py.File(args.h5_path, 'w') as h5f:
-        jpgs = list(os.listdir(args.jpgs_dir))
-        for jpg_i, jpg_filename in tqdm.tqdm(enumerate(jpgs), total=len(jpgs)):
+        for jpg_i, jpg_filename in tqdm.tqdm(enumerate(os.listdir(args.jpgs_dir))):
             x, y, w, h = annotations['data'][jpg_i]['bbox']
 
             image = cv2.imread(os.path.join(args.jpgs_dir, jpg_filename))
