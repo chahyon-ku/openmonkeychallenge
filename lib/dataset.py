@@ -7,11 +7,12 @@ import torchvision.transforms.functional as F
 
 
 class OMCDataset(torch.utils.data.Dataset):
-    def __init__(self, h5_path, image_size, sigma=1):
+    def __init__(self, h5_path, image_size, target_size, sigma=1):
         super(OMCDataset, self).__init__()
         self.h5f = None
         self.h5_path = h5_path
         self.image_size = image_size
+        self.target_size = target_size
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
         self.sigma = sigma
@@ -52,17 +53,17 @@ class OMCDataset(torch.utils.data.Dataset):
         if len(data['landmarks']) == 0:
             target = torch.zeros(0)
         else:
-            target = torch.zeros(17, self.image_size, self.image_size, dtype=torch.float32)
+            target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
             landmarks = numpy.array(data['landmarks'], dtype=int)
             landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
 
             for i, (x, y) in enumerate(landmarks):
-                x = (x - box_x) * self.image_size // box_s + pad_x
-                y = (y - box_y) * self.image_size // box_s + pad_y
+                x = (x - box_x) * self.target_size // box_s + pad_x
+                y = (y - box_y) * self.target_size // box_s + pad_y
                 l = max(x - self.g.shape[0] // 2, 0)
                 t = max(y - self.g.shape[0] // 2, 0)
-                r = min(x + self.g.shape[0] // 2, self.image_size)
-                b = min(y + self.g.shape[0] // 2, self.image_size)
+                r = min(x + self.g.shape[0] // 2, self.target_size)
+                b = min(y + self.g.shape[0] // 2, self.target_size)
                 g_l = l - (x - self.g.shape[0] // 2)
                 g_t = t - (y - self.g.shape[0] // 2)
                 g_r = r - (x + self.g.shape[0] // 2) + self.g.shape[0] - 1

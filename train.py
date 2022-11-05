@@ -18,13 +18,15 @@ if __name__ == '__main__':
     parser.add_argument('--train_h5_path', type=str, default='data/v2/train.h5')
     parser.add_argument('--val_h5_path', type=str, default='data/v2/test.h5')
     parser.add_argument('--n_workers', type=int, default=1)
-    parser.add_argument('--image_size', type=int, default=256)
+    parser.add_argument('--image_size', type=int, default=224)
+    parser.add_argument('--target_size', type=int, default=112)
 
     # optim
     parser.add_argument('--lr', type=float, default=1e-3)
 
     # model
-    parser.add_argument('--model_name', type=str, default='hrnet_w18')
+    parser.add_argument('--model_name', type=str, default='hrnet_w18',
+                        choices=('hrnet_w18', 'hrnet_w32', 'hrnet_w48', 'hrnet_w64', 'vit_base_patch16_224'))
     parser.add_argument('--pretrained', type=bool, default=True)
 
     # train
@@ -35,12 +37,15 @@ if __name__ == '__main__':
     parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18')
     args = parser.parse_args()
 
-    train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size)
+    train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size, args.target_size)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, args.batch_size, shuffle=True, num_workers=args.n_workers)
-    val_dataset = lib.dataset.OMCDataset(args.val_h5_path, args.image_size)
+    val_dataset = lib.dataset.OMCDataset(args.val_h5_path, args.image_size, args.target_size)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, args.batch_size, num_workers=args.n_workers)
 
-    model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size).to('cuda')
+    if args.model_name.startswith('hrnet'):
+        model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size).to('cuda')
+    elif args.model_name.startswith('vit'):
+        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size).to('cuda')
     optim = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     os.makedirs(args.log_dir, exist_ok=True)
@@ -59,7 +64,7 @@ if __name__ == '__main__':
 
             optim.zero_grad()
             prediction = model(image)
-            loss = torch.nn.functional.mse_loss(prediction, torchvision.transforms.functional.resize(target, prediction.shape[-2:]))
+            loss = torch.nn.functional.mse_loss(prediction, target)
             loss.backward()
             optim.step()
             postfix['model_time'] = time.time() - start
