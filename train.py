@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # data
     parser.add_argument('--train_h5_path', type=str, default='data/v2/train.h5')
-    parser.add_argument('--val_h5_path', type=str, default='data/v2/test.h5')
+    parser.add_argument('--val_h5_path', type=str, default='data/v2/val.h5')
     parser.add_argument('--n_workers', type=int, default=0)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--target_size', type=int, default=112)
@@ -34,15 +34,15 @@ if __name__ == '__main__':
     # train
     parser.add_argument('--f_save', type=int, default=4)
     parser.add_argument('--f_val', type=int, default=1)
-    parser.add_argument('--n_epochs', type=int, default=1)
+    parser.add_argument('--n_epochs', type=int, default=2)
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18')
     args = parser.parse_args()
 
     train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size, args.target_size)
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, args.batch_size, shuffle=True, num_workers=args.n_workers, drop_last=True)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, args.batch_size, shuffle=True, num_workers=args.n_workers)
     val_dataset = lib.dataset.OMCDataset(args.val_h5_path, args.image_size, args.target_size)
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, args.batch_size, num_workers=args.n_workers, drop_last=True)
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, args.batch_size, num_workers=args.n_workers)
 
     if args.model_name.startswith('hrnet'):
         model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size).to('cuda')

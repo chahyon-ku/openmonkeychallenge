@@ -50,9 +50,8 @@ class OMCDataset(torch.utils.data.Dataset):
 
         metadata = torch.from_numpy(numpy.array([box_x, box_y, box_w, box_h, pad_x, pad_y]))
 
-        if len(data['landmarks']) == 0:
-            target = torch.zeros(0)
-        else:
+        target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
+        if len(data['landmarks']):
             target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
             landmarks = numpy.array(data['landmarks'], dtype=int)
             landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
@@ -70,11 +69,9 @@ class OMCDataset(torch.utils.data.Dataset):
                 g_t = t - y + self.g.shape[0] // 2
                 g_r = g_l + w
                 g_b = g_t + h
-                if target[i, t:b, l:r].shape != self.g[g_t:g_b, g_l:g_r].shape:
-                    print(box_x, box_y, box_w, box_h, pad_x, pad_y)
-                    print(l, t, r, b, g_l, g_t, g_r, g_b)
-                    print(target[i, t:b, l:r].shape, self.g[g_t:g_b, g_l:g_r].shape)
                 target[i, t:b, l:r] = self.g[g_t:g_b, g_l:g_r]
+        else:
+            print(data)
 
         return image, target, metadata
 
