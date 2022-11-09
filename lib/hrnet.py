@@ -31,6 +31,4 @@ class HRNet(torch.nn.Module):
         landmarks[:, :, 1] -= torch.unsqueeze(torch.maximum(bbox[:, 2] - bbox[:, 3], torch.tensor(0)), 1) / 2
         landmarks = torch.flatten(landmarks, 1)
 
-        timm.models.HighResolutionNetFeatures
-
         return landmarks

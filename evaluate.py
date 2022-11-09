@@ -1,5 +1,7 @@
 import argparse
 import json
+import os
+
 import numpy as np
 
 
@@ -22,11 +24,11 @@ def get_ap(truth_np, pred_np, w_np, k_np, eps):
     return ap
 
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--truth_path', type=str, default='data/val_annotation.json')
-    parser.add_argument('--pred_path', type=str, default='output/hrnet_w48_5_val.json')
+    parser.add_argument('--pred_path', type=str, default='preds/20/val/hrnet_w18.json')
+    parser.add_argument('--output_path', type=str, default='evals/20/val/hrnet_w18.json')
     args = parser.parse_args()
 
     k_np = np.array([[.025, .025, .026, .035, .035, 0.079, 0.072, 0.062, 0.079, 0.072, 0.062, 0.107,
@@ -47,7 +49,12 @@ def main():
     mpjpe = get_mpjpe(truth_np, pred_np, w_np)
     pck = get_pck(truth_np, pred_np, w_np, eps)
     aps = [get_ap(truth_np, pred_np, w_np, k_np, e) for e in np.linspace(0.5, 0.95, 10)]
-    print(np.round(mpjpe, 4), np.round(pck, 4), np.round(np.mean(aps), 4), np.round(aps, 4))
+
+    results = {'mpjpe': mpjpe, 'pck': pck, 'ap': np.mean(aps), 'aps': aps}
+    print(results)
+    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+    with open(args.output_path, 'w') as f:
+        json.dump(results, f, indent=1)
 
 
 if __name__ == '__main__':
