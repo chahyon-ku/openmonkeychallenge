@@ -50,7 +50,7 @@ if __name__ == '__main__':
         model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size).to('cuda')
     elif args.model_name.startswith('vit'):
         embed_dim = 768 if 'base' in args.model_name else 384
-        patch_size = 8 if 'p8' in args.model_name else 16
+        patch_size = 8 if 'patch8' in args.model_name else 16
         model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size, patch_size, embed_dim).to('cuda')
 
     # optim
