@@ -115,6 +115,7 @@ if __name__ == '__main__':
                 summary_writer.add_scalar('train_pck', postfix['train_pck'], global_step)
                 summary_writer.add_scalar('train_ap', postfix['train_ap'], global_step)
                 summary_writer.flush()
+                break
 
         with torch.no_grad():
             if epoch_i % args.f_save == 0:
@@ -141,10 +142,12 @@ if __name__ == '__main__':
                     val_targ_lands.append(targ_lands)
                     val_w.append(np.reshape(np.array(bbox[:, 2]), (-1, 1)))
                     val_losses.append(loss.item())
+                    if batch_i == 10:
+                        break
 
                 val_pred_lands = np.concatenate(val_pred_lands)
                 val_targ_lands = np.concatenate(val_targ_lands)
-                val_w = np.stack(val_w)
+                val_w = np.concatenate(val_w)
 
                 mpjpe = evaluate.get_mpjpe(val_pred_lands, val_targ_lands, val_w)
                 pck = evaluate.get_pck(val_pred_lands, val_targ_lands, val_w)
