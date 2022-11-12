@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
                 val_pred_lands = np.concatenate(val_pred_lands)
                 val_targ_lands = np.concatenate(val_targ_lands)
-                val_w = np.stack(w)
+                val_w = np.stack(val_w)
 
                 mpjpe = evaluate.get_mpjpe(val_pred_lands, val_targ_lands, val_w)
                 pck = evaluate.get_pck(val_pred_lands, val_targ_lands, val_w)
