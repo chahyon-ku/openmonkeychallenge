@@ -115,7 +115,6 @@ if __name__ == '__main__':
                 summary_writer.add_scalar('train_pck', postfix['train_pck'], global_step)
                 summary_writer.add_scalar('train_ap', postfix['train_ap'], global_step)
                 summary_writer.flush()
-                break
 
         with torch.no_grad():
             if epoch_i % args.f_save == 0:
