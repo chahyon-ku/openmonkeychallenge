@@ -21,12 +21,13 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--target_size', type=int, default=112)
-
     # model
     parser.add_argument('--model_name', type=str, default='hrnet_w18',
                         choices=('hrnet_w18', 'hrnet_w32', 'hrnet_w48', 'hrnet_w64',
                                  'vit_small_patch8_224_dino', 'vit_base_patch8_224_dino', 'vit_small_patch16_224_dino',
-                                 'vit_base_patch16_224_dino'))
+                                 'vit_base_patch16_224_dino',
+                                 'vit_small_patch16_384', 'vit_base_patch16_384', 'vit_large_patch16_384',
+                                 'vit_small_patch16_224', 'vit_base_patch16_224', 'vit_large_patch16_224'))
     parser.add_argument('--pretrained', type=bool, default=True)
 
     # optim
