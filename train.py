@@ -91,6 +91,7 @@ if __name__ == '__main__':
             postfix['model_time'] = time.time() - start
             start = time.time()
 
+            metrics = {}
             with torch.no_grad():
                 prediction_landmarks = np.round(np.array(model.get_landmarks(prediction, bbox)))
                 prediction_landmarks = np.reshape(prediction_landmarks, (prediction_landmarks.shape[0], -1, 2))
@@ -110,11 +111,18 @@ if __name__ == '__main__':
                 postfix['train_pck'] = pck
                 postfix['train_ap'] = ap
                 epoch_iter.set_postfix(postfix)
-                summary_writer.add_scalar('train_loss', postfix['train_loss'], global_step)
-                summary_writer.add_scalar('train_mpjpe', postfix['train_mpjpe'], global_step)
-                summary_writer.add_scalar('train_pck', postfix['train_pck'], global_step)
-                summary_writer.add_scalar('train_ap', postfix['train_ap'], global_step)
-                summary_writer.flush()
+
+                for metric_name, metric_value in postfix.items():
+                    if metric_name not in metrics:
+                        metrics[metric_name] = []
+                    metrics[metric_name].append(metric_value)
+
+        metrics = {metric_name: sum(metric_values) / len(metric_values) for metric_name, metric_values in metrics}
+        for metric_name, metric_value in postfix.items():
+            postfix[metric_name] = metric_value
+            summary_writer.add_scalar(metric_name, metric_value)
+        epoch_iter.set_postfix(postfix)
+        summary_writer.flush()
 
         with torch.no_grad():
             if epoch_i % args.f_save == 0:

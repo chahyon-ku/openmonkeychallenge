@@ -40,7 +40,8 @@ class OMCDataset(torch.utils.data.Dataset):
         box_s = max(box_w, box_h)
 
         image = cv2.imdecode(self.h5f[key]['image'][()], cv2.IMREAD_COLOR)
-        image = F.to_tensor(image)
+        image = torch.from_numpy(image)
+        image = torch.permute(image, (2, 0, 1))
         
         # https://pytorch.org/vision/main/_modules/torchvision/transforms/autoaugment.html#RandAugment
         # Number of different magnitudes available to choose from
@@ -59,19 +60,19 @@ class OMCDataset(torch.utils.data.Dataset):
         }
 
         num_ops = 3
-        magnitude = 5
+        magnitude_index = 5
         for _ in range(num_ops):
             op_index = int(torch.randint(len(op_meta), (1,)).item())
             op_name = list(op_meta.keys())[op_index]
             magnitudes, signed = op_meta[op_name]
-            magnitude = float(magnitudes[magnitude].item()) if magnitudes.ndim > 0 else 0.0
+            magnitude_value = float(magnitudes[magnitude_index].item()) if magnitudes.ndim > 0 else 0.0
             if signed and torch.randint(2, (1,)):
-                magnitude *= -1.0
-            image = torchvision.transforms.autoaugment._apply_op(image, op_name, magnitude, interpolation=self.interpolation, fill=None)
-
+                magnitude_value *= -1.0
+            image = torchvision.transforms.autoaugment._apply_op(image, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)
         
         # Suggestion: check for landmarks earlier (only should be applied to training data)
 
+        image = image.to(torch.get_default_dtype()).div(255)
         image = F.resize(image, [box_h * self.image_size // box_s, box_w * self.image_size // box_s])
         image = F.normalize(image, self.mean, self.std)
         pad_x = (self.image_size - image.shape[2]) // 2
