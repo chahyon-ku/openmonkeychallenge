@@ -164,7 +164,7 @@ class OMCDataset(torch.utils.data.Dataset):
             magnitude_value = float(magnitudes[magnitude_index].item()) if magnitudes.ndim > 0 else 0.0
             if signed and torch.randint(2, (1,)):
                 magnitude_value *= -1.0
-            image = torchvision.transforms.autoaugment._apply_op2(image, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)
+            image = _apply_op2(image, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)
         
         # Suggestion: check for landmarks earlier (only should be applied to training data)
 
