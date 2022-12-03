@@ -6,9 +6,7 @@ import torch.utils.data
 import torchvision
 import torchvision.transforms.functional as F
 
-def _apply_op2(img, op_name, magnitude, interpolation, fill=None, landmark_list = [], box = []):
-    new_landmarks = []
-    new_box = []
+def _apply_op2(img, op_name, magnitude, interpolation, fill=None):
     if op_name == "ShearX":
         # magnitude should be arctan(magnitude)
         # official autoaug: (1, level, 0, 0, 1, 0)
@@ -62,28 +60,27 @@ def _apply_op2(img, op_name, magnitude, interpolation, fill=None, landmark_list 
     elif op_name == "Rotate":
         img = F.rotate(img, magnitude, interpolation=interpolation, fill=fill)
     elif op_name == "Brightness":
-        img = F.adjust_brightness(img, 1.0 + magnitude)
+        pass
     elif op_name == "Color":
-        img = F.adjust_saturation(img, 1.0 + magnitude)
+        pass
     elif op_name == "Contrast":
-        img = F.adjust_contrast(img, 1.0 + magnitude)
+        pass
     elif op_name == "Sharpness":
-        img = F.adjust_sharpness(img, 1.0 + magnitude)
+        pass
     elif op_name == "Posterize":
-        img = F.posterize(img, int(magnitude))
+        pass
     elif op_name == "Solarize":
-        img = F.solarize(img, magnitude)
+        pass
     elif op_name == "AutoContrast":
-        img = F.autocontrast(img)
+        pass
     elif op_name == "Equalize":
-        img = F.equalize(img)
+        pass
     elif op_name == "Invert":
-        img = F.invert(img)
+        pass
     elif op_name == "Identity":
         pass
-    else:
-        raise ValueError(f"The provided operator {op_name} is not recognized.")
-    return img, new_landmarks, new_box
+    # removed the error raised here because we may want to remove more code
+    return img
 
 
 class OMCDataset(torch.utils.data.Dataset):
@@ -150,11 +147,6 @@ class OMCDataset(torch.utils.data.Dataset):
             landmarks = numpy.array(data['landmarks'], dtype=int)
             landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
 
-        # idk how to handle this format so I will make it into something else
-        landmarks_list = []
-        for i, (x, y) in enumerate(landmarks):
-            landmarks_list.append((x,y))
-
         num_ops = 3
         magnitude_index = 5
         for _ in range(num_ops):
@@ -164,7 +156,10 @@ class OMCDataset(torch.utils.data.Dataset):
             magnitude_value = float(magnitudes[magnitude_index].item()) if magnitudes.ndim > 0 else 0.0
             if signed and torch.randint(2, (1,)):
                 magnitude_value *= -1.0
-            image = _apply_op2(image, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)
+            image = torchvision.transforms.autoaugment._apply_op(image, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)
+            # apply_op2 across last two dimensions of target (operation for the underlying heat maps)
+            # might be able to send all 17 channels though
+            target = _apply_op2(x, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)
         
         # Suggestion: check for landmarks earlier (only should be applied to training data)
 
