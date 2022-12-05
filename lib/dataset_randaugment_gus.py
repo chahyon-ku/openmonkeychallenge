@@ -5,6 +5,7 @@ import cv2
 import torch.utils.data
 import torchvision
 import torchvision.transforms.functional as F
+import math
 
 def _apply_op2(img, op_name, magnitude, interpolation, fill=None, landmark_list = [], box = []):
     new_landmarks = []

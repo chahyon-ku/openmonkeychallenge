@@ -39,18 +39,19 @@ if __name__ == '__main__':
     parser.add_argument('--f_save', type=int, default=999)
     parser.add_argument('--f_val', type=int, default=1)
     parser.add_argument('--n_epochs', type=int, default=2)
-    parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18')
+    parser.add_argument('--log_dir', type=str, default='logs/hrnet_w18_randaugment')
+    parser.add_argument('--device', type=str, default='cuda', choices=('cuda', 'cpu'))
     args = parser.parse_args()
 
     # data
-    train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size, args.target_size)
+    train_dataset = lib.dataset_randaugment.OMCDataset(args.train_h5_path, args.image_size, args.target_size)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, args.batch_size, shuffle=True, num_workers=args.n_workers)
     val_dataset = lib.dataset.OMCDataset(args.val_h5_path, args.image_size, args.target_size)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, args.batch_size, num_workers=args.n_workers)
 
     # model
     if args.model_name.startswith('hrnet'):
-        model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size)
+        model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size).to(args.device)
     elif args.model_name.startswith('vit'):
         if 'large' in args.model_name:
             embed_dim = 1024
@@ -62,7 +63,7 @@ if __name__ == '__main__':
             patch_size = 16
         elif 'patch8' in args.model_name:
             patch_size = 8
-        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size, patch_size, embed_dim)
+        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size, patch_size, embed_dim).to(args.device)
 
     # optim
     optim = torch.optim.AdamW(model.parameters(), lr=args.lr)
@@ -78,8 +79,8 @@ if __name__ == '__main__':
     for epoch_i in epoch_iter:
         start = time.time()
         for batch_i, (image, target, bbox) in tqdm.tqdm(enumerate(train_dataloader), total=len(train_dataloader), leave=False):
-            image = image
-            target = target
+            image = image.to(args.device)
+            target = target.to(args.device)
             postfix['data_time'] = time.time() - start
             start = time.time()
 
