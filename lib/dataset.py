@@ -3,7 +3,9 @@ import h5py
 import numpy
 import cv2
 import torch.utils.data
+import torchvision
 import torchvision.transforms.functional as F
+import math
 
 
 class OMCDataset(torch.utils.data.Dataset):
@@ -39,30 +41,30 @@ class OMCDataset(torch.utils.data.Dataset):
         box_s = max(box_w, box_h)
 
         image = cv2.imdecode(self.h5f[key]['image'][()], cv2.IMREAD_COLOR)
-        image = F.to_tensor(image)
+        image = torch.from_numpy(image)
+        image = torch.permute(image, (2, 0, 1))
+
         image = F.resize(image, [box_h * self.image_size // box_s, box_w * self.image_size // box_s])
-        image = F.normalize(image, self.mean, self.std)
         pad_x = (self.image_size - image.shape[2]) // 2
         pad_y = (self.image_size - image.shape[1]) // 2
         image = F.pad(image, [pad_x, pad_y,
                               self.image_size - image.shape[2] - pad_x,
                               self.image_size - image.shape[1] - pad_y])
 
-        metadata = torch.from_numpy(numpy.array([box_x, box_y, box_w, box_h, pad_x, pad_y]))
+        # get landmarks before any changes made
+        target = torch.zeros(17, self.image_size, self.image_size, dtype=torch.float32)
 
-        target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
         if len(data['landmarks']):
-            target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
+            # landmarks already assigned
             landmarks = numpy.array(data['landmarks'], dtype=int)
             landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
-
             for i, (x, y) in enumerate(landmarks):
-                x = (x - box_x) * self.target_size // box_s + pad_x * self.target_size // self.image_size
-                y = (y - box_y) * self.target_size // box_s + pad_y * self.target_size // self.image_size
+                x = (x - box_x) * self.image_size // box_s + pad_x * self.image_size // self.image_size
+                y = (y - box_y) * self.image_size // box_s + pad_y * self.image_size // self.image_size
                 l = max(x - self.g.shape[0] // 2, 0)
                 t = max(y - self.g.shape[0] // 2, 0)
-                r = min(x + self.g.shape[0] // 2 + 1, self.target_size)
-                b = min(y + self.g.shape[0] // 2 + 1, self.target_size)
+                r = min(x + self.g.shape[0] // 2 + 1, self.image_size)
+                b = min(y + self.g.shape[0] // 2 + 1, self.image_size)
                 w = r - l
                 h = b - t
                 g_l = l - x + self.g.shape[0] // 2
@@ -72,6 +74,13 @@ class OMCDataset(torch.utils.data.Dataset):
                 target[i, t:b, l:r] = self.g[g_t:g_b, g_l:g_r]
         else:
             print(data)
+            
+        image = image.to(torch.get_default_dtype()).div(255)
+        image = F.normalize(image, self.mean, self.std)
+        target = F.resize(target, [self.target_size, self.target_size])
+        
+        # Suggestion: check for landmarks earlier (only should be applied to training data)
+
+        metadata = torch.from_numpy(numpy.array([box_x, box_y, box_w, box_h, pad_x, pad_y]))
 
         return image, target, metadata
-

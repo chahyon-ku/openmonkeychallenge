@@ -128,21 +128,19 @@ class OMCDataset(torch.utils.data.Dataset):
                               self.image_size - image.shape[1] - pad_y])
 
         # get landmarks before any changes made
-        target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
-        if len(data['landmarks']):
-            target = torch.zeros(17, self.target_size, self.target_size, dtype=torch.float32)
-            landmarks = numpy.array(data['landmarks'], dtype=int)
-            landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
+        target = torch.zeros(17, self.image_size, self.image_size, dtype=torch.float32)
 
         if len(data['landmarks']):
             # landmarks already assigned
+            landmarks = numpy.array(data['landmarks'], dtype=int)
+            landmarks = numpy.stack((landmarks[0:len(landmarks):2], landmarks[1:len(landmarks):2]), axis=-1)
             for i, (x, y) in enumerate(landmarks):
-                x = (x - box_x) * self.target_size // box_s + pad_x * self.target_size // self.image_size
-                y = (y - box_y) * self.target_size // box_s + pad_y * self.target_size // self.image_size
+                x = (x - box_x) * self.image_size // box_s + pad_x * self.image_size // self.image_size
+                y = (y - box_y) * self.image_size // box_s + pad_y * self.image_size // self.image_size
                 l = max(x - self.g.shape[0] // 2, 0)
                 t = max(y - self.g.shape[0] // 2, 0)
-                r = min(x + self.g.shape[0] // 2 + 1, self.target_size)
-                b = min(y + self.g.shape[0] // 2 + 1, self.target_size)
+                r = min(x + self.g.shape[0] // 2 + 1, self.image_size)
+                b = min(y + self.g.shape[0] // 2 + 1, self.image_size)
                 w = r - l
                 h = b - t
                 g_l = l - x + self.g.shape[0] // 2
@@ -175,7 +173,7 @@ class OMCDataset(torch.utils.data.Dataset):
         }
 
         num_ops = 3
-        magnitude_index = 5
+        magnitude_index = 2
         for _ in range(num_ops):
             op_index = int(torch.randint(len(op_meta), (1,)).item())
             op_name = list(op_meta.keys())[op_index]
@@ -190,6 +188,7 @@ class OMCDataset(torch.utils.data.Dataset):
             
         image = image.to(torch.get_default_dtype()).div(255)
         image = F.normalize(image, self.mean, self.std)
+        target = F.resize(target, [self.target_size, self.target_size])
         
         # Suggestion: check for landmarks earlier (only should be applied to training data)
 

@@ -15,8 +15,6 @@ class ViTPose(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.ConvTranspose2d(self.embed_dim, self.embed_dim, 4, 2, 1),
             torch.nn.ReLU(),
-            torch.nn.ConvTranspose2d(self.embed_dim, self.embed_dim, 4, 2, 1),
-            torch.nn.ReLU(),
             torch.nn.Conv2d(self.embed_dim, 17, 1, 1, 0)
         )
 
