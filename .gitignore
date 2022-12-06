@@ -1,2 +1,7 @@
-/data/
+/data/v1/
+/data/v2/
 /hrnet/
+/logs/
+/output/
+*.pyc
+/.idea/
