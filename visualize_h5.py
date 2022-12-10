@@ -13,9 +13,9 @@ import lib
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--h5_path', type=str, default='data/v2/val.h5')
-    parser.add_argument('--output_dir', type=str, default='output/val_h5_randaugment_gus/')
+    parser.add_argument('--output_dir', type=str, default='output/val_h5_randaugment_gus_56/')
     parser.add_argument('--image_size', type=int, default=224)
-    parser.add_argument('--target_size', type=int, default=112)
+    parser.add_argument('--target_size', type=int, default=56)
     parser.add_argument('--n_images', type=int, default=100)
     args = parser.parse_args()
 

@@ -28,8 +28,8 @@ def get_ap(truth_np, pred_np, w_np, k_np=np.array([[.025, .025, .026, .035, .035
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--truth_path', type=str, default='data/val_annotation.json')
-    parser.add_argument('--pred_path', type=str, default='output/base/vit_base_patch16_224_8.json')
-    parser.add_argument('--output_path', type=str, default='evals/base/vit_base_patch16_224_8.json')
+    parser.add_argument('--pred_path', type=str, default='preds/randaugment/vit_base_patch16_224_32_2_up3.json')
+    parser.add_argument('--output_path', type=str, default='evals/randaugment/vit_base_patch16_224_32_2_up3.json')
     args = parser.parse_args()
 
     with open(args.truth_path, 'r') as f:

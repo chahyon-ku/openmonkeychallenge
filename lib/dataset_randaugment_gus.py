@@ -85,7 +85,7 @@ def _apply_op2(img, op_name, magnitude, interpolation, fill=None):
 
 
 class OMCDataset(torch.utils.data.Dataset):
-    def __init__(self, h5_path, image_size, target_size, sigma=1):
+    def __init__(self, h5_path, image_size, target_size, sigma=1, magnitude=2):
         super(OMCDataset, self).__init__()
         self.h5f = None
         self.h5_path = h5_path
@@ -94,6 +94,7 @@ class OMCDataset(torch.utils.data.Dataset):
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
         self.sigma = sigma
+        self.magnitude = magnitude
         with h5py.File(h5_path, 'r') as h5f:
             self.len = len(h5f.keys())
 
@@ -173,12 +174,11 @@ class OMCDataset(torch.utils.data.Dataset):
         }
 
         num_ops = 3
-        magnitude_index = 2
         for _ in range(num_ops):
             op_index = int(torch.randint(len(op_meta), (1,)).item())
             op_name = list(op_meta.keys())[op_index]
             magnitudes, signed = op_meta[op_name]
-            magnitude_value = float(magnitudes[magnitude_index].item()) if magnitudes.ndim > 0 else 0.0
+            magnitude_value = float(magnitudes[self.magnitude].item()) if magnitudes.ndim > 0 else 0.0
             if signed and torch.randint(2, (1,)):
                 magnitude_value *= -1.0
             image = torchvision.transforms.autoaugment._apply_op(image, op_name, magnitude_value, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, fill=None)

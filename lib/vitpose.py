@@ -3,7 +3,7 @@ import timm
 
 
 class ViTPose(torch.nn.Module):
-    def __init__(self, model_name, pretrained, image_size, patch_size, embed_dim):
+    def __init__(self, model_name, pretrained, image_size, patch_size, embed_dim, n_upscales):
         super(ViTPose, self).__init__()
 
         self.vit = timm.create_model(model_name, pretrained=pretrained)
@@ -11,10 +11,8 @@ class ViTPose(torch.nn.Module):
         self.patch_size = patch_size
         self.embed_dim = embed_dim
         self.head = torch.nn.Sequential(
-            torch.nn.ConvTranspose2d(self.embed_dim, self.embed_dim, 4, 2, 1),
-            torch.nn.ReLU(),
-            torch.nn.ConvTranspose2d(self.embed_dim, self.embed_dim, 4, 2, 1),
-            torch.nn.ReLU(),
+            *[torch.nn.Sequential(torch.nn.ConvTranspose2d(self.embed_dim, self.embed_dim, 4, 2, 1), torch.nn.ReLU())
+            for _ in range(n_upscales)],
             torch.nn.Conv2d(self.embed_dim, 17, 1, 1, 0)
         )
 

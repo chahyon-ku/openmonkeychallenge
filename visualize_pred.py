@@ -13,10 +13,10 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image_dir', type=str, default='data/val')
+    parser.add_argument('--image_dir', type=str, default='data/v2/val')
     parser.add_argument('--truth_path', type=str, default='data/val_annotation.json')
-    parser.add_argument('--pred_path', type=str, default='output/hrnet_w48_val.json')
-    parser.add_argument('--output_dir', type=str, default='output/hrnet_w48_val/')
+    parser.add_argument('--pred_path', type=str, default='output/base/vit_base_patch16_224_8.json')
+    parser.add_argument('--output_dir', type=str, default='output/base/hrnet_w48_val/')
     parser.add_argument('--n_images', type=int, default=100)
     args = parser.parse_args()
 
