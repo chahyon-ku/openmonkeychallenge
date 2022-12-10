@@ -1,5 +1,6 @@
 import argparse
 import collections
+import json
 import os
 import time
 
@@ -20,35 +21,34 @@ if __name__ == '__main__':
     parser.add_argument('--train_h5_path', type=str, default='data/v2/train.h5')
     parser.add_argument('--val_h5_path', type=str, default='data/v2/val.h5')
     parser.add_argument('--n_workers', type=int, default=16)
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--image_size', type=int, default=224)
-    parser.add_argument('--sigma', type=int, default=16)
+    parser.add_argument('--sigma', type=int, default=32)
+    parser.add_argument('--magnitude', type=int, default=2)
     # model
     parser.add_argument('--model_name', type=str, default='vit_base_patch16_224',
                         choices=('hrnet_w18', 'hrnet_w32', 'hrnet_w48', 'hrnet_w64',
-                                 'vit_small_patch8_224_dino', 'vit_base_patch8_224_dino', 'vit_small_patch16_224_dino',
-                                 'vit_base_patch16_224_dino',
                                  'vit_small_patch16_384', 'vit_base_patch16_384', 'vit_large_patch16_384',
                                  'vit_small_patch16_224', 'vit_base_patch16_224', 'vit_large_patch16_224'))
     parser.add_argument('--pretrained', type=bool, default=True)
+    parser.add_argument('--n_upscales', type=int, default=3)
 
     # optim
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--lr', type=float, default=1e-4)
 
     # train
     parser.add_argument('--device', type=str, default='cuda:0', choices=('cpu', 'cuda:0', 'cuda:1'))
     parser.add_argument('--f_save', type=int, default=999)
     parser.add_argument('--f_val', type=int, default=1)
-    parser.add_argument('--n_epochs', type=int, default=40)
-    parser.add_argument('--log_dir', type=str, default='logs/base/vit_base_patch16_224_16')
+    parser.add_argument('--n_epochs', type=int, default=80)
+    parser.add_argument('--log_dir', type=str, default='logs/randaugment/vit_base_patch16_224_32_2_up3')
     args = parser.parse_args()
 
-    args.target_size = args.image_size // 4 if 'patch16' in args.model_name else args.image_size // 2
-
     # data
-    train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size, args.target_size, args.sigma)
+    args.target_size = args.image_size // 16 * (2 ** args.n_upscales) if 'patch16' in args.model_name else args.image_size // 8 * (2 ** args.n_upscales)
+    train_dataset = lib.dataset.OMCDataset(args.train_h5_path, args.image_size, args.target_size, args.sigma, args.magnitude)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, args.batch_size, shuffle=True, num_workers=args.n_workers)
-    val_dataset = lib.dataset.OMCDataset(args.val_h5_path, args.image_size, args.target_size, args.sigma)
+    val_dataset = lib.dataset.OMCDataset(args.val_h5_path, args.image_size, args.target_size, args.sigma, 0)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, args.batch_size, num_workers=args.n_workers)
 
     # model
@@ -65,7 +65,7 @@ if __name__ == '__main__':
             patch_size = 16
         elif 'patch8' in args.model_name:
             patch_size = 8
-        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size, patch_size, embed_dim)
+        model = lib.vitpose.ViTPose(args.model_name, args.pretrained, args.image_size, patch_size, embed_dim, args.n_upscales)
     model.to(args.device)
 
     # optim
@@ -85,6 +85,7 @@ if __name__ == '__main__':
         global_step += 1
         start = time.time()
         metrics = collections.defaultdict(list)
+        model.train()
         for batch_i, (image, target, bbox) in tqdm.tqdm(enumerate(train_dataloader), total=len(train_dataloader), leave=False):
             image = image.to(args.device)
             target = target.to(args.device)
@@ -153,6 +154,7 @@ if __name__ == '__main__':
                 val_w = []
                 val_losses = []
                 metrics = collections.defaultdict(list)
+                model.eval()
                 for batch_i, (image, target, bbox) in tqdm.tqdm(enumerate(val_dataloader), total=len(val_dataloader),
                                                                 leave=False):
                     image = image.to(args.device)
