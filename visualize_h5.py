@@ -13,7 +13,7 @@ import lib
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--h5_path', type=str, default='data/v2/val.h5')
-    parser.add_argument('--output_dir', type=str, default='output/val_h5_randaugment_gus_56/')
+    parser.add_argument('--output_dir', type=str, default='output/val_h5/')
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--target_size', type=int, default=56)
     parser.add_argument('--n_images', type=int, default=100)
@@ -25,7 +25,7 @@ def main():
                                                                                    std=[1., 1., 1.]),
                                                   ])
 
-    dataset = lib.dataset_randaugment_gus.OMCDataset(args.h5_path, args.image_size, args.target_size, sigma=1)
+    dataset = lib.dataset.OMCDataset(args.h5_path, args.image_size, args.target_size, sigma=1, magnitude=0)
     dataloader = torch.utils.data.DataLoader(dataset, 32)
 
     os.makedirs(args.output_dir, exist_ok=True)

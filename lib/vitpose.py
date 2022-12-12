@@ -17,7 +17,7 @@ class ViTPose(torch.nn.Module):
         )
 
     def forward(self, x):
-        x = self.vit.forward_features(x)[:, :-1]
+        x = self.vit.forward_features(x)[:, 1:]
         x = torch.reshape(x, (x.shape[0], self.image_size // self.patch_size, self.image_size // self.patch_size,
                               x.shape[-1]))
         x = torch.permute(x, (0, 3, 1, 2))
