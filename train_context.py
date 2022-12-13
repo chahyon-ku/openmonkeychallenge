@@ -32,7 +32,7 @@ if __name__ == '__main__':
                         choices=('hrnet_w18', 'hrnet_w32', 'hrnet_w48', 'hrnet_w64',
                                  'vit_small_patch16_384', 'vit_base_patch16_384', 'vit_large_patch16_384',
                                  'vit_small_patch16_224', 'vit_base_patch16_224', 'vit_large_patch16_224'))
-    parser.add_argument('--pretrained', type=bool, default=True)
+    parser.add_argument('--pretrained', action='store_false', default=True)
     parser.add_argument('--n_upscales', type=int, default=2)
 
     # optim
@@ -53,6 +53,7 @@ if __name__ == '__main__':
     val_dataset = lib.dataset_context.OMCDataset(args.val_h5_path, args.image_size, args.target_size, args.sigma, 0)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, args.batch_size, num_workers=args.n_workers)
 
+    print(args.context)
     # model
     if args.model_name.startswith('hrnet'):
         model = lib.hrnet.HRNet(args.model_name, args.pretrained, args.image_size)
@@ -95,7 +96,10 @@ if __name__ == '__main__':
             start = time.time()
 
             optim.zero_grad()
-            prediction = model(image, cls)
+            if args.context:
+                prediction = model(image, cls)
+            else:
+                prediction = model(image)
             loss = torch.nn.functional.mse_loss(prediction, target)
             loss.backward()
             optim.step()
@@ -161,7 +165,10 @@ if __name__ == '__main__':
                                                                 leave=False):
                     image, target, bbox, cls = [x.to(args.device) for x in batch]
                     bbox = bbox.cpu()
-                    prediction = model(image, cls)
+                    if args.context:
+                        prediction = model(image, cls)
+                    else:
+                        prediction = model(image)
                     loss = torch.nn.functional.mse_loss(prediction, target)
 
                     pred_lands = np.round(np.array(model.get_landmarks(prediction, bbox)))

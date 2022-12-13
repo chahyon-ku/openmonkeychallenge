@@ -17,7 +17,7 @@ class ViTPose(torch.nn.Module):
         )
 
         self.n_cls_tokens = n_cls_tokens
-        self.cls_tokens = torch.nn.Parameter(torch.randn(self.n_cls_tokens, 1, embed_dim) * .02)
+        self.cls_tokens = torch.nn.Parameter(torch.randn(self.n_cls_tokens, 1, embed_dim) * .02) if n_cls_tokens > 1 else None
 
     def context_pos_embed(self, x, cls):
         if self.vit.no_embed_class:
