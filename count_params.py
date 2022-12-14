@@ -5,10 +5,10 @@ import lib
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='vit_base_patch16_224')
+    parser.add_argument('--model_name', type=str, default='vit_large_patch16_224')
     parser.add_argument('--pretrained', type=bool, default=True)
     parser.add_argument('--image_size', type=int, default=224)
-    parser.add_argument('--n_upscales', type=int, default=2)
+    parser.add_argument('--n_upscales', type=int, default=4)
     args = parser.parse_args()
 
     # model

@@ -18,5 +18,8 @@
 
 # python predict.py --model_name vit_base_patch16_224 --n_upscales 3 --resume_path logs/1212-20/base_sig8_mag2_up3/20.pt --output_path preds/1212-20/base_sig8_mag2_up3.json --device=cuda:1
 # python predict.py --model_name vit_base_patch16_224 --n_upscales 3 --context --resume_path logs/1212-20/context_sig8_mag2_up3/20.pt --output_path preds/1212-20/context_sig8_mag2_up3.json --device=cuda:1
+# python predict.py --model_name vit_base_patch16_224 --n_upscales 3 --context --resume_path logs/1212-20/context_sig8_mag4_up3/20.pt --output_path preds/1212-20/context_sig8_mag4_up3.json --device=cuda:1
 # python predict.py --model_name vit_base_patch16_224 --n_upscales 4 --context --resume_path logs/1212-20/context_sig8_mag2_up4/20.pt --output_path preds/1212-20/context_sig8_mag2_up4.json --device=cuda:1
-python predict.py --model_name vit_base_patch16_224 --n_upscales 3 --context --resume_path logs/1212-20/context_sig8_mag4_up3/20.pt --output_path preds/1212-20/context_sig8_mag4_up3.json --device=cuda:1
+
+# python predict.py --model_name vit_large_patch16_224 --n_upscales 3 --context --resume_path logs/1212-20/lc_sig8_mag2_up3/10.pt --output_path preds/1212-20/lc_sig8_mag2_up3.json --device=cuda:0
+# python predict.py --model_name vit_large_patch16_224 --n_upscales 3 --context --resume_path logs/1212-20/lc_sig8_mag4_up3/best.pt --output_path preds/1212-20/lc_sig8_mag4_up3.json --device=cuda:0

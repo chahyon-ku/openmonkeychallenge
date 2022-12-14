@@ -16,4 +16,5 @@
 # python train_context.py --sigma 8 --magnitude 2 --n_upscales 3 --log_dir logs/1212-20/context_sig8_mag2_up3 --n_epochs 80 --device cuda:0 --context True --f_save=10
 
 # python train.py --sigma 8 --magnitude 2 --n_upscales 3 --log_dir logs/1212-20/base_sig8_mag2_up3 --n_epochs 20 --device cuda:1 --f_save=10
-python train_context.py --sigma 8 --magnitude 4 --n_upscales 3 --log_dir logs/1212-20/context_sig8_mag4_up3 --n_epochs 80 --device cuda:1 --f_save=10
+# python train_context.py --sigma 8 --magnitude 4 --n_upscales 3 --log_dir logs/1212-20/context_sig8_mag4_up3 --n_epochs 80 --device cuda:1 --f_save=10
+python train_context.py --model_name vit_large_patch16_224 --sigma 8 --magnitude 4 --n_upscales 3 --log_dir logs/1212-20/lc_sig8_mag4_up3 --n_epochs 80 --device cuda:1 --context --f_save=10
