@@ -10,6 +10,11 @@ def get_mpjpes(truth_np, pred_np, w_np):
     mpjpes = np.mean(dist / w_np, 0)
     return mpjpes
 
+def get_mpjpe(truth_np, pred_np, w_np):
+    dist = np.sqrt(np.sum((truth_np - pred_np) ** 2, -1))
+    mpjpe = np.mean(np.mean(dist / w_np, 0))
+    return mpjpe
+
 
 def get_pck(truth_np, pred_np, w_np, eps=0.2):
     dist = np.sqrt(np.sum((truth_np - pred_np) ** 2, -1))
