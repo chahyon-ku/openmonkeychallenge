@@ -6,3 +6,8 @@
 /output/
 *.pyc
 /.idea/
+*.zip
+/data/test/
+/data/train/
+/data/val/
+/data/vpng/

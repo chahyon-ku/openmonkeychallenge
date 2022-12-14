@@ -5,10 +5,10 @@ import os
 import numpy as np
 
 
-def get_mpjpe(truth_np, pred_np, w_np):
+def get_mpjpes(truth_np, pred_np, w_np):
     dist = np.sqrt(np.sum((truth_np - pred_np) ** 2, -1))
-    mpjpe = np.mean(np.mean(dist / w_np, 0))
-    return mpjpe
+    mpjpes = np.mean(dist / w_np, 0)
+    return mpjpes
 
 
 def get_pck(truth_np, pred_np, w_np, eps=0.2):
@@ -44,11 +44,12 @@ def main():
     w_np = np.reshape(np.array([image['bbox'][2] for image in truth['data']]), (-1, 1))
     eps = 0.2
 
-    mpjpe = get_mpjpe(truth_np, pred_np, w_np)
+    mpjpes = get_mpjpes(truth_np, pred_np, w_np).tolist()
+    mpjpe = np.mean(mpjpes)
     pck = get_pck(truth_np, pred_np, w_np, eps)
     aps = [get_ap(truth_np, pred_np, w_np, eps=e) for e in np.linspace(0.5, 0.95, 10)]
 
-    results = {'mpjpe': mpjpe, 'pck': pck, 'ap': np.mean(aps), 'aps': aps}
+    results = {'mpjpe': mpjpe, 'pck': pck, 'ap': np.mean(aps), 'mpjpes': mpjpes, 'aps': aps}
     print(results)
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
     with open(args.output_path, 'w') as f:

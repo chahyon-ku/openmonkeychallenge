@@ -37,3 +37,5 @@ if __name__ == '__main__':
                                                      (target_landmarks[landmark_i][0], prediction_landmarks[landmark_i][0] * 2),))
 
             plt.savefig()
+            if image_i == 99:
+                break

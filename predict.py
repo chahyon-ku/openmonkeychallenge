@@ -31,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('--pretrained', type=bool, default=False)
     parser.add_argument('--resume_path', type=str, default='logs/base/vit_base_patch16_224_16/best.pt')
     parser.add_argument('--n_upscales', type=int, default=3)
-    parser.add_argument('--context', type=bool, default=False)
+    parser.add_argument('--context', action='store_true')
 
     # testing
     parser.add_argument('--device', type=str, default='cuda:0', choices=('cpu', 'cuda:0', 'cuda:1'))

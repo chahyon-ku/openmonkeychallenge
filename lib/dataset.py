@@ -189,6 +189,7 @@ class OMCDataset(torch.utils.data.Dataset):
         image = image.to(torch.get_default_dtype()).div(255)
         image = F.normalize(image, self.mean, self.std)
         target = F.resize(target, [self.target_size, self.target_size])
+        target = target / torch.sum(target, dim=(1, 2), keepdim=True)
         
         # Suggestion: check for landmarks earlier (only should be applied to training data)
 
